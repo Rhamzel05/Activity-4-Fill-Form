@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            margin-left: 40px;
+            margin-top: 40px;
+        }
+
+        #myForm {
+            display: none;
+            padding: 2.5em;
+            border: 2.5px solid #007bff;
+            width: 540px;
+            border-radius: 22px;
+            background-color: #e6f2ff;
+            box-shadow: 0px 8px 32px rgba(0,0,0,0.12);
+            position: relative;
+            transition: margin-bottom 0.2s;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 4px;
+            transition: margin-bottom 0.2s;
+        }
+
+        .form-group.has-error {
+            margin-bottom: 28px;
+        }
+
+        label {
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #0056b3;
+            font-size: 1.35em;
+        }
+        input, select, button {
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+            max-width: 100%;
+            display: block;
+            padding: 18px;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            font-size: 1.35em;
+            margin-bottom: 2px;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: #0056b3;
+            outline: none;
+        }
+
+        .error-message {
+            color: #d8000c;
+            font-size: 1.08em;
+            margin-top: 2px;
+            min-height: 18px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 18px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.35em;
+            font-weight: 700;
+            margin-top: 16px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #output {
+            margin-top: 20px;
+            text-align: left;
+            width: 540px;
+        }
+
+        .result {
+            padding: 28px;
+            border: 3px dashed #007bff;
+            border-radius: 18px;
+            background-color: #f2faff;
+            display: inline-block;
+            text-align: left;
+            font-size: 1.55em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+        .shake {
+            animation: shake 0.4s;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="output">
+            <p style="font-size:1.25em;"><strong>Press Ctrl+Alt+N to show the form</strong></p>
+        </div>
+        <form id="myForm">
+            <div class="form-group" id="nameGroup">
+                <label for="name">Name:</label>
+                <input type="text" id="name" autocomplete="off">
+                <span id="nameError" class="error-message"></span>
+            </div>
+            <div class="form-group" id="ageGroup">
+                <label for="age">Age:</label>
+                <input type="number" id="age" min="1" autocomplete="off">
+                <span id="ageError" class="error-message"></span>
+            </div>
+            <div class="form-group" id="genderGroup">
+                <label for="gender">Gender:</label>
+                <select id="gender">
+                    <option value="">--Select--</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span id="genderError" class="error-message"></span>
+            </div>
+            <div class="form-group" id="otherGroup" style="display:none;">
+                <label for="otherSpecify">Please specify:</label>
+                <input type="text" id="otherSpecify" autocomplete="off">
+                <span id="otherError" class="error-message"></span>
+            </div>
+            <button type="button" onClick="submitForm()">Submit</button>
+        </form>
+    </div>
+    <script>
+        const myForm = document.getElementById("myForm");
+        const nameField = document.getElementById("name");
+        const ageField = document.getElementById("age");
+        const genderField = document.getElementById("gender");
+        const otherGroup = document.getElementById("otherGroup");
+        const otherSpecify = document.getElementById("otherSpecify");
+        const output = document.getElementById("output");
+
+        const nameError = document.getElementById("nameError");
+        const ageError = document.getElementById("ageError");
+        const genderError = document.getElementById("genderError");
+        const otherError = document.getElementById("otherError");
+
+        const nameGroup = document.getElementById("nameGroup");
+        const ageGroup = document.getElementById("ageGroup");
+        const genderGroup = document.getElementById("genderGroup");
+
+        genderField.addEventListener("change", function() {
+            if (genderField.value === "Other") {
+                otherGroup.style.display = "flex";
+            } else {
+                otherGroup.style.display = "none";
+                otherSpecify.value = "";
+                otherError.textContent = "";
+                otherGroup.classList.remove("has-error");
+            }
+        });
+
+        nameField.addEventListener("input", function() {
+            if (nameField.value.trim() !== "") {
+                nameError.textContent = "";
+                nameGroup.classList.remove("has-error");
+            }
+        });
+        ageField.addEventListener("input", function() {
+            if (ageField.value.trim() !== "") {
+                ageError.textContent = "";
+                ageGroup.classList.remove("has-error");
+            }
+        });
+        genderField.addEventListener("input", function() {
+            if (genderField.value !== "") {
+                genderError.textContent = "";
+                genderGroup.classList.remove("has-error");
+            }
+        });
+        otherSpecify.addEventListener("input", function() {
+            if (otherSpecify.value.trim() !== "") {
+                otherError.textContent = "";
+                otherGroup.classList.remove("has-error");
+                myForm.classList.remove("shake");
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", function() {
+            displaySavedData();
+            const saved = localStorage.getItem("formData");
+            if (saved) {
+                const data = JSON.parse(saved);
+                nameField.value = data.name || "";
+                ageField.value = data.age || "";
+                genderField.value = data.gender || "";
+                if (data.gender === "Other") {
+                    otherGroup.style.display = "flex";
+                    otherSpecify.value = data.otherSpecify || "";
+                }
+            }
+        });
+
+        document.addEventListener("keydown", function(e) {
+            if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "n") {
+                myForm.style.display = "block";
+                output.style.display = "none";
+
+                const saved = localStorage.getItem("formData");
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    nameField.value = data.name || "";
+                    ageField.value = data.age || "";
+                    genderField.value = data.gender || "";
+                    if (data.gender === "Other") {
+                        otherGroup.style.display = "flex";
+                        otherSpecify.value = data.otherSpecify || "";
+                    } else {
+                        otherGroup.style.display = "none";
+                        otherSpecify.value = "";
+                    }
+                } else {
+                    myForm.reset();
+                    otherGroup.style.display = "none";
+                }
+                nameError.textContent = "";
+                ageError.textContent = "";
+                genderError.textContent = "";
+                otherError.textContent = "";
+                nameGroup.classList.remove("has-error");
+                ageGroup.classList.remove("has-error");
+                genderGroup.classList.remove("has-error");
+                otherGroup.classList.remove("has-error");
+                myForm.classList.remove("shake");
+            }
+
+            if (e.key === "Escape") {
+
+                if (myForm.style.display === "block") {
+
+                    if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "SELECT") {
+
+                        if (document.activeElement.value !== "") {
+                            document.activeElement.value = "";
+                            saveFormToLocalStorage();
+                        } else {
+
+                            document.activeElement.blur();
+                        }
+                    } else {
+                        myForm.style.display = "none";
+                        displayInitialPanel();
+                    }
+                } else {
+                    displayInitialPanel();
+                }
+            }
+        });
+
+        function displayInitialPanel() {
+            output.innerHTML = `
+                <p style="font-size:1.25em;"><strong>Press Ctrl+Alt+N to show the form</strong></p>
+                <p style="font-size:1.15em;">Press Escape to clear the current field</p>
+            `;
+            output.style.display = "block";
+            myForm.style.display = "none";
+        }
+
+        function saveFormToLocalStorage() {
+            const name = nameField.value.trim();
+            const age = ageField.value.trim();
+            const gender = genderField.value;
+            const other = otherSpecify.value.trim();
+            const formData = {
+                name: name,
+                age: age,
+                gender: gender,
+                otherSpecify: gender === "Other" ? other : ""
+            };
+            localStorage.setItem("formData", JSON.stringify(formData));
+        }
+
+        function displaySavedData() {
+            const saved = localStorage.getItem("formData");
+            if (saved) {
+                const data = JSON.parse(saved);
+                let genderDisplay = data.gender;
+                if (data.gender === "Other") {
+                    genderDisplay = data.otherSpecify;
+                }
+                output.innerHTML = `
+                    <div class="result">
+                        <div style="font-size:1.15em;font-weight:bold;margin-bottom:18px;">Submitted Data:</div>
+                        <p><strong>Name:</strong> ${data.name || ""}</p>
+                        <p><strong>Age:</strong> ${data.age || ""}</p>
+                        <p><strong>Gender:</strong> ${genderDisplay || ""}</p>
+                    </div>
+                `;
+                output.style.display = "block";
+            } else {
+                displayInitialPanel();
+            }
+        }
+
+        function submitForm() {
+            const name = nameField.value.trim();
+            const age = ageField.value.trim();
+            const gender = genderField.value;
+            const other = otherSpecify.value.trim();
+
+            let hasError = false;
+
+            nameGroup.classList.remove("has-error");
+            ageGroup.classList.remove("has-error");
+            genderGroup.classList.remove("has-error");
+            otherGroup.classList.remove("has-error");
+            myForm.classList.remove("shake");
+
+            if (name === "") {
+                nameError.textContent = "Name is required.";
+                nameGroup.classList.add("has-error");
+                hasError = true;
+            } else {
+                nameError.textContent = "";
+            }
+
+            if (age === "") {
+                ageError.textContent = "Age is required.";
+                ageGroup.classList.add("has-error");
+                hasError = true;
+            } else if (parseInt(age) < 1) {
+                ageError.textContent = "Age must be at least 1.";
+                ageGroup.classList.add("has-error");
+                hasError = true;
+            } else {
+                ageError.textContent = "";
+            }
+
+            if (gender === "") {
+                genderError.textContent = "Gender is required.";
+                genderGroup.classList.add("has-error");
+                hasError = true;
+            } else {
+                genderError.textContent = "";
+            }
+
+            if (gender === "Other") {
+                if (other === "") {
+                    otherError.textContent = "Please specify.";
+                    otherGroup.classList.add("has-error");
+                    myForm.classList.add("shake");
+                    setTimeout(() => {
+                        myForm.classList.remove("shake");
+                    }, 400);
+                    hasError = true;
+                } else {
+                    otherError.textContent = "";
+                }
+            }
+
+            if (hasError) {
+                return;
+            }
+            saveFormToLocalStorage();
+
+            let genderDisplay = gender;
+            if (gender === "Other") {
+                genderDisplay = other;
+            }
+
+            output.innerHTML = `
+                <div class="result">
+                    <div style="font-size:1.15em;font-weight:bold;margin-bottom:18px;">Submitted Data:</div>
+                    <p><strong>Name:</strong> ${name}</p>
+                    <p><strong>Age:</strong> ${age}</p>
+                    <p><strong>Gender:</strong> ${genderDisplay}</p>
+                </div>
+            `;
+            output.style.display = "block";
+            myForm.style.display = "none";
+        }
+    </script>
+</body>
+</html>
